@@ -1,6 +1,8 @@
 package javaTest;
 
-import cn.hutool.core.util.RandomUtil;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,6 +52,7 @@ public class Java8Stream {
     public void distinctObject() {
         // 由于创建对象的内存地址不重复，所以不会去重（删除下面对象的equals and hashCode方法查看运行结果）
         // 重写User的equals and hashCode 方法，就可以实现对象的去重
+        // Lombok 中的 @Data注解 里面包含 @EqualsAndHashCode 注解 ，可以直接解决此问题
         List<User> userList1 = users.stream().distinct().collect(Collectors.toList());
         userList1.forEach(System.out::println);
         System.out.println("=====================");
@@ -96,7 +99,6 @@ public class Java8Stream {
         // 给流的元素加上前缀和后缀
         List<String> map = strings.stream().map(s -> s.concat("zhaohq")).collect(Collectors.toList());
         map.stream().map(s -> "大帅哥" + s).collect(Collectors.toList()).forEach(System.out::println);
-        ;
         // peek 改变原来对象的状态
         List<User> userListPeek = users.stream().peek(user -> user.setName("zhaohq是大帅哥")).collect(Collectors.toList());
         System.out.println("=====================");
@@ -154,7 +156,7 @@ public class Java8Stream {
         System.out.println("===================");
         users.stream().sorted(Comparator.comparing(User::getAge)).collect(Collectors.toList()).forEach(System.out::println);
         System.out.println("===================");
-        // Collectors.groupingBy 不是排序，是分组
+        // Collectors.groupingBy 是分组，不是排序
         Map<Integer, List<User>> collect = users.stream().collect(Collectors.groupingBy(User::getAge));
         collect.forEach((key, value) -> {
             System.out.println(key);
@@ -222,7 +224,8 @@ public class Java8Stream {
      */
     @Test
     public void collectToSet() {
-        strings.stream().collect(Collectors.toSet()).forEach(System.out::println);
+        // strings.stream().collect(Collectors.toSet()).forEach(System.out::println);
+        new HashSet<>(strings).forEach(System.out::println);
     }
 
     /**
@@ -231,9 +234,7 @@ public class Java8Stream {
      */
     @Test
     public void collectToMap() {
-        strings.stream().collect(Collectors.toMap(e -> e, e -> e, (v1, v2) -> v1)).forEach((key, value) -> {
-            System.out.println(key + ":" + value);
-        });
+        strings.stream().collect(Collectors.toMap(e -> e, e -> e, (v1, v2) -> v1)).forEach((key, value) -> System.out.println(key + ":" + value));
     }
 
     /**
@@ -241,68 +242,34 @@ public class Java8Stream {
      */
     @Test
     public void reduce() {
-        Optional<String> optional1 = strings.stream().reduce((acc, item) -> {
-            return acc + item;
-        });
+        Optional<String> optional1 = strings.stream().reduce((acc, item) -> acc + item);
         optional1.ifPresent(System.out::println);
 
 
         boolean seen = false;
-        String acc = null;
+        StringBuilder acc = null;
         for (String string : strings) {
             if (!seen) {
                 seen = true;
-                acc = string;
+                acc = new StringBuilder(string);
             } else {
-                acc = acc + string;
+                acc.append(string);
             }
         }
-        Optional<String> optional2 = seen ? Optional.of(acc) : Optional.empty();
+        Optional<String> optional2 = seen ? Optional.of(acc.toString()) : Optional.empty();
         optional2.ifPresent(System.out::println);
     }
 
 }
 
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 class User {
     private Integer id;
     private String name;
     private Integer age;
-
-    public User() {
-    }
-
-    public User(Integer id, String name, Integer age) {
-        this.id = id;
-        this.name = name;
-        this.age = age;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    @Override
+/*    @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
@@ -324,5 +291,5 @@ class User {
     @Override
     public int hashCode() {
         return Objects.hash(id, name, age);
-    }
+    }*/
 }
